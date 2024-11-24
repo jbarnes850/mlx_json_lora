@@ -2,13 +2,18 @@
 
 > Transform your Mac into a professional model fine-tuning workstation. Built on Apple's MLX framework and optimized for Metal performance.
 
+<div align="center">
+
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![MLX Version](https://img.shields.io/badge/MLX-0.18.1-green.svg)](https://github.com/ml-explore/mlx)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
+</div>
+
 ## 🎯 Professional-Grade Fine-Tuning
 
 MLX LoRA Trainer brings enterprise-quality model customization to your local environment. Designed for professionals who need:
+
 - Production-ready model adaptation
 - Memory-efficient training
 - Professional monitoring and logging
