@@ -1,0 +1,30 @@
+# Qwen2.5-4B specific configuration
+model:
+  name: "Qwen/Qwen2.5-4B"
+  batch_size: 1
+  max_seq_length: 512
+  learning_rate: 1.0e-4
+  num_layers: 2
+
+# Training parameters
+training:
+  seed: 42
+  iters: 600
+  val_batches: 20
+  steps_per_report: 10
+  steps_per_eval: 50
+  save_every: 100
+  grad_checkpoint: true
+
+# LoRA configuration
+lora:
+  r: 8
+  alpha: 32
+  dropout: 0.1
+  target_modules:
+    - "attn.c_attn"  # Combined QKV projection
+    - "attn.c_proj"  # Output projection
+    - "mlp.w1"       # MLP first layer
+    - "mlp.w2"       # MLP second layer
+    - "mlp.c_proj"   # MLP output projection
+  lora_layers: 2

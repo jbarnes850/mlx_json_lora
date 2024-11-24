@@ -1,0 +1,32 @@
+# Gemma-2B specific configuration
+model:
+  name: "google/gemma-2b"
+  batch_size: 1
+  max_seq_length: 512
+  learning_rate: 1.5e-4
+  num_layers: 4
+
+# Training parameters
+training:
+  seed: 42
+  iters: 600
+  val_batches: 20
+  steps_per_report: 10
+  steps_per_eval: 50
+  save_every: 100
+  grad_checkpoint: true
+
+# LoRA configuration
+lora:
+  r: 8
+  alpha: 32
+  dropout: 0.1
+  target_modules:
+    - "attn.q_proj"
+    - "attn.k_proj"
+    - "attn.v_proj"
+    - "attn.o_proj"
+    - "mlp.gate_proj"
+    - "mlp.up_proj"
+    - "mlp.down_proj"
+  lora_layers: 4

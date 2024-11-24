@@ -1,0 +1,46 @@
+# Model and training configuration
+model_key: "microsoft/phi-3-mini-4k-instruct"
+
+models:
+  "microsoft/phi-3-mini-4k-instruct":
+    name: "microsoft/phi-3-mini-4k-instruct"
+    batch_size: 1  # Reduced for memory efficiency
+    max_seq_length: 512
+    learning_rate: 2.0e-4
+    num_layers: 4
+  "google/gemma-2b":
+    name: "google/gemma-2b"
+    batch_size: 1
+    max_seq_length: 512
+    learning_rate: 1.5e-4
+    num_layers: 4
+  "Qwen/Qwen2.5-4B":
+    name: "Qwen/Qwen2.5-4B"
+    batch_size: 1
+    max_seq_length: 512
+    learning_rate: 1.0e-4
+    num_layers: 2
+
+# Training parameters (aligned with MLX example)
+seed: 42
+iters: 600
+val_batches: 20
+steps_per_report: 10
+steps_per_eval: 50
+save_every: 100
+grad_checkpoint: true
+
+# LoRA configuration (following MLX recommendations)
+lora:
+  r: 8  # LoRA attention dimension
+  alpha: 32  # LoRA alpha scaling
+  dropout: 0.1
+  target_modules:  # Updated for Phi-3 architecture
+    - "attn.Wq"
+    - "attn.Wk"
+    - "attn.Wv"
+    - "attn.out_proj"
+    - "mlp.up_proj"
+    - "mlp.down_proj"
+    - "mlp.gate_proj"
+  lora_layers: 4  # Reduced number of layers for memory efficiency
