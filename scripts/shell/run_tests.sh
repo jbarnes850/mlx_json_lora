@@ -29,9 +29,34 @@ print_warning() {
     echo -e "${YELLOW}! $1${NC}"
 }
 
+# Add this near the top of the file
+check_requirements() {
+    print_header "Checking requirements"
+    
+    # Check for Python packages
+    pip list | grep -q "huggingface-hub" || {
+        print_warning "huggingface-hub not found in requirements-dev.txt"
+        return 1
+    }
+    pip list | grep -q "transformers" || {
+        print_warning "transformers not found in requirements-dev.txt"
+        return 1
+    }
+    pip list | grep -q "rich" || {
+        print_warning "rich not found in requirements-dev.txt"
+        return 1
+    }
+    
+    print_success "All requirements satisfied"
+    return 0
+}
+
 # Install development dependencies
 print_header "Installing development dependencies"
-pip install -r "${PROJECT_ROOT}/requirements-dev.txt"
+check_requirements || {
+    print_error "Missing required packages"
+    exit 1
+}
 
 # Run code formatting
 print_header "Running code formatters"

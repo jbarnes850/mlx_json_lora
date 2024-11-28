@@ -24,6 +24,7 @@ MLX LoRA Trainer brings enterprise-quality model customization to your local env
 ## ⚡️ Quick Start (2 minutes)
 
 Get started with a single command:
+
 ```bash
 git clone https://github.com/jbarnes850/mlx_lora_trainer.git
 cd mlx_lora_trainer
@@ -31,14 +32,17 @@ bash scripts/shell/run_tutorial.sh
 ```
 
 The interactive tutorial will guide you through:
-1. Selecting your model (Phi-3-mini, Gemma-2B, or Qwen2.5-4B)
+
+1. Selecting your model (Phi-3.5 Mini, Gemma 2-2B, or Qwen 2.5 7B)
 2. Choosing your training data (pre-formatted JSONL or uploading custom data)
 3. Starting your first fine-tuning run
 
 ## Advanced Features
 
 ### Custom Datasets
+
 The framework currently supports pre-formatted JSONL datasets with conversation structure:
+
 ```json
 {
     "conversations": [
@@ -47,20 +51,25 @@ The framework currently supports pre-formatted JSONL datasets with conversation 
     ]
 }
 ```
+
 Place your formatted data in the `data/` directory as `train.jsonl`, or specify a custom path in the config.
 
 > 💡 **Coming Soon**: Support for converting unstructured text data into the required JSONL format.
 
 ### Training Times
+
 Approximate training times per epoch on M2 Pro:
-- Phi-3-mini (8GB): ~20 minutes
-- Gemma-2B (12GB): ~45 minutes
-- Qwen2.5-4B (16GB): ~90 minutes
+
+- Phi-3.5 Mini (3B): ~25 minutes
+- Gemma 2-2B (2.2B): ~45 minutes
+- Qwen 2.5 7B (7B): ~120 minutes
 
 Training time varies based on dataset size and hardware. Expect ~20% faster times on M3/M4 Series and ~20% slower on M1 series.
 
 ### Local vs Cloud Training
+
 While cloud solutions may offer faster training times, MLX LoRA Trainer provides:
+
 - Complete data privacy
 - No cloud compute costs
 - Full control over training process
@@ -70,16 +79,17 @@ While cloud solutions may offer faster training times, MLX LoRA Trainer provides
 
 | Model | Parameters | RAM | Use Case |
 |-------|------------|-----|----------|
-| Phi-3-mini | 1.3B | 8GB | Rapid prototyping |
-| Gemma-2B | 2B | 12GB | Production deployment |
-| Qwen2.5-4B | 4B | 16GB | Advanced applications |
+| [Phi-3.5 Mini](https://huggingface.co/microsoft/Phi-3.5-mini-instruct) | 3B | 8GB | Instruction following, coding |
+| [Gemma 2-2B](https://huggingface.co/google/gemma-2-2b) | 2.2B | 12GB | General purpose, efficient |
+| [Qwen 2.5 7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) | 7B | 32GB | Advanced tasks, multilingual |
 
 ## 📊 Technical Implementation
 
 ### Memory-Optimized Training
+
 ```python
 config = Config(
-    model_name="gemma-2b",
+    model_name="google/gemma-2-2b",
     lora_rank=8,
     lora_alpha=32,
     grad_checkpoint=True,
@@ -88,6 +98,7 @@ config = Config(
 ```
 
 ### Production Data Format
+
 ```json
 {
     "conversations": [
@@ -103,9 +114,9 @@ config = Config(
 - macOS Sonoma or newer
 - Python 3.9+
 - RAM requirements:
-  * 8GB+ for Phi-3-mini
-  * 12GB+ for Gemma-2B
-  * 16GB+ for Qwen2.5-4B
+  * 8GB+ for Phi-3.5 Mini
+  * 12GB+ for Gemma 2-2B
+  * 32GB+ for Qwen 2.5 7B Instruct
 
 ## 📚 Documentation
 
@@ -118,6 +129,7 @@ config = Config(
 ## 📈 Roadmap
 
 ### High Priority
+
 - [ ] Unstructured Data Support
   * Automatic conversion of text documents to JSONL
   * Smart chunking and context preservation
@@ -131,6 +143,7 @@ config = Config(
   
 
 ### Coming Soon
+
 - [ ] Distributed training support
 - [ ] Advanced quantization options
 - [ ] Custom architecture support
