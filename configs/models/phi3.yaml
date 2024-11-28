@@ -1,11 +1,11 @@
-# Phi-3 Mini specific configuration
+# Phi-3.5 Mini specific configuration
 model:
-  name: "microsoft/phi-3-mini-4k-instruct"
-  path: "microsoft/phi-3-mini-4k-instruct"
+  name: "microsoft/Phi-3.5-mini-instruct"
+  path: "microsoft/Phi-3.5-mini-instruct"
   batch_size: 1
-  max_seq_length: 512
+  max_seq_length: 2048
   learning_rate: 2.0e-4
-  num_layers: 4
+  num_layers: 32
 
 # Training parameters
 training:
@@ -17,17 +17,17 @@ training:
   save_every: 100
   grad_checkpoint: true
 
-# LoRA configuration
+# LoRA configuration for Phi-3.5
 lora:
   r: 8
   alpha: 32
   dropout: 0.1
   target_modules:
-    - "attn.Wq"
-    - "attn.Wk"
-    - "attn.Wv"
-    - "attn.out_proj"
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+    - "mlp.gate_proj"
     - "mlp.up_proj"
     - "mlp.down_proj"
-    - "mlp.gate_proj"
-  lora_layers: 4
+  lora_layers: 32
