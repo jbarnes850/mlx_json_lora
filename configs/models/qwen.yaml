@@ -1,10 +1,11 @@
-# Qwen2.5-4B specific configuration
+# Qwen 2.5 7B Instruct specific configuration
 model:
-  name: "Qwen/Qwen2.5-4B"
+  name: "Qwen/Qwen2.5-7B-Instruct"
+  path: "Qwen/Qwen2.5-7B-Instruct"
   batch_size: 1
-  max_seq_length: 512
+  max_seq_length: 32768
   learning_rate: 1.0e-4
-  num_layers: 2
+  num_layers: 28
 
 # Training parameters
 training:
@@ -16,15 +17,15 @@ training:
   save_every: 100
   grad_checkpoint: true
 
-# LoRA configuration
+# LoRA configuration based on Qwen architecture
 lora:
   r: 8
   alpha: 32
   dropout: 0.1
   target_modules:
-    - "attn.c_attn"  # Combined QKV projection
-    - "attn.c_proj"  # Output projection
-    - "mlp.w1"       # MLP first layer
-    - "mlp.w2"       # MLP second layer
-    - "mlp.c_proj"   # MLP output projection
-  lora_layers: 2
+    - "c_attn"
+    - "c_proj"
+    - "w1"
+    - "w2"
+    - "c_proj"
+  lora_layers: 28

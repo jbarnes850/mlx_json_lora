@@ -37,21 +37,21 @@ TOTAL_STEPS=6
 
 # Define models using simple arrays
 MODEL_NAMES=(
-    "phi-3-mini"
-    "gemma-2b"
-    "qwen2"
+    "phi-3.5-mini"
+    "gemma-2-2b"
+    "qwen2.5-7b"
 )
 
 MODEL_PATHS=(
-    "microsoft/phi-3-mini-4k-instruct"
-    "google/gemma-2b"
-    "Qwen/Qwen2-5B-beta"
+    "microsoft/Phi-3.5-mini-instruct"
+    "google/gemma-2-2b"
+    "Qwen/Qwen2.5-7B-Instruct"
 )
 
 MODEL_RAM_REQ=(
-    8  # phi-3-mini
-    12 # gemma-2b
-    16 # qwen2
+    8  # phi-3.5-mini
+    12 # gemma-2-2b
+    32 # qwen2.5-7b
 )
 
 get_model_path() {
@@ -503,27 +503,105 @@ setup_environment() {
     return 0
 }
 
-# Function to select model
+# Add these functions BEFORE select_model()
+create_phi_config() {
+    local config_path=$1
+    mkdir -p "$(dirname "$config_path")"
+    cat > "$config_path" << 'EOF'
+# Phi-3.5 Mini specific configuration
+model:
+  name: "microsoft/Phi-3.5-mini-instruct"
+  path: "microsoft/Phi-3.5-mini-instruct"
+  batch_size: 1
+  max_seq_length: 2048
+  learning_rate: 2.0e-4
+  num_layers: 32
+
+# Training parameters
+training:
+  seed: 42
+  iters: 600
+  val_batches: 20
+  steps_per_report: 10
+  steps_per_eval: 50
+  save_every: 100
+  grad_checkpoint: true
+
+# LoRA configuration for Phi-3.5
+lora:
+  r: 8
+  alpha: 32
+  dropout: 0.1
+  target_modules:
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+    - "mlp.gate_proj"
+    - "mlp.up_proj"
+    - "mlp.down_proj"
+  lora_layers: 32
+EOF
+    print_success "Created Phi-3.5 configuration"
+}
+
+verify_or_create_config() {
+    local model_choice=$1
+    local config_path=$2
+    
+    # Create configs directory if it doesn't exist
+    mkdir -p "$(dirname "$config_path")"
+    
+    # If config doesn't exist, create it
+    if [ ! -f "$config_path" ]; then
+        case $model_choice in
+            1)
+                create_phi_config "$config_path"
+                ;;
+            2)
+                create_gemma_config "$config_path"
+                ;;
+            3)
+                create_qwen_config "$config_path"
+                ;;
+            *)
+                print_error "Invalid model choice: $model_choice"
+                return 1
+                ;;
+        esac
+    fi
+    
+    # Verify config was created
+    if [ ! -f "$config_path" ]; then
+        print_error "Failed to create config file: $config_path"
+        return 1
+    fi
+    
+    print_success "Model configuration verified: $config_path"
+    return 0
+}
+
+# Then update select_model to use absolute paths
 select_model() {
     print_step "Model Selection"
     CURRENT_STEP=3
     save_progress
     
     echo -e "\nAvailable Models:"
-    echo -e "${CYAN}1. Phi-3 Mini (4B)${NC}"
+    echo -e "${CYAN}1. Phi-3.5 Mini (3B)${NC}"
     echo -e "   - Optimized for instruction following"
     echo -e "   - Memory: ~8GB required"
     echo -e "   - Best for: General tasks, coding, instruction following"
     echo
-    echo -e "${CYAN}2. Gemma (2B)${NC}"
+    echo -e "${CYAN}2. Gemma 2-2B${NC}"
     echo -e "   - Google's latest compact model"
-    echo -e "   - Memory: ~6GB required"
+    echo -e "   - Memory: ~12GB required"
     echo -e "   - Best for: Balanced performance, efficiency"
     echo
-    echo -e "${CYAN}3. Qwen2 (4B)${NC}"
-    echo -e "   - Alibaba's multilingual model"
-    echo -e "   - Memory: ~10GB required"
-    echo -e "   - Best for: Multilingual tasks, complex reasoning"
+    echo -e "${CYAN}3. Qwen 2.5 7B${NC}"
+    echo -e "   - Advanced multilingual model"
+    echo -e "   - Memory: ~32GB required"
+    echo -e "   - Best for: Complex tasks, multilingual support"
     echo
     
     while true; do
@@ -547,9 +625,15 @@ select_model() {
         esac
     done
     
-    # Export the model config for other scripts
+    # Verify the config exists
+    if [ ! -f "$MODEL_CONFIG" ]; then
+        print_error "Model configuration not found: $MODEL_CONFIG"
+        print_info "Please ensure the model configuration files exist in configs/models/"
+        return 1
+    fi
+    
+    print_success "Model selected: $(get_model_name $MODEL_CHOICE)"
     export MLX_MODEL_CONFIG="$MODEL_CONFIG"
-    print_success "Model selected successfully"
     return 0
 }
 
@@ -722,7 +806,7 @@ run_training() {
     if [ ! -f "${PROJECT_ROOT}/${MODEL_CONFIG}" ]; then
         print_error "Model configuration not found: ${MODEL_CONFIG}"
         return 1
-    }
+    fi
     
     # Check available disk space
     available_space=$(df -k . | awk 'NR==2 {print $4}')
@@ -730,7 +814,7 @@ run_training() {
     if [ $available_space -lt $required_space ]; then
         print_error "Insufficient disk space. At least 10GB required."
         return 1
-    }
+    fi
     
     print_info "Starting LoRA fine-tuning process..."
     echo -e "${CYAN}Training can be safely interrupted with Ctrl+C"
@@ -872,31 +956,31 @@ detect_hardware() {
     case $chip_info in
         *"M1"*)
             if [[ $total_memory -ge 16 ]]; then
-                RECOMMENDED_MODEL="gemma-2b"
+                RECOMMENDED_MODEL="gemma-2-2b"
                 BATCH_SIZE=2
             else
-                RECOMMENDED_MODEL="phi-3-mini"
+                RECOMMENDED_MODEL="phi-3.5-mini"
                 BATCH_SIZE=4
             fi
             ;;
         *"M2"*)
             if [[ $total_memory -ge 32 ]]; then
-                RECOMMENDED_MODEL="qwen2"
+                RECOMMENDED_MODEL="qwen2.5-7b"
                 BATCH_SIZE=1
             elif [[ $total_memory -ge 16 ]]; then
-                RECOMMENDED_MODEL="gemma-2b"
+                RECOMMENDED_MODEL="gemma-2-2b"
                 BATCH_SIZE=2
             else
-                RECOMMENDED_MODEL="phi-3-mini"
+                RECOMMENDED_MODEL="phi-3.5-mini"
                 BATCH_SIZE=4
             fi
             ;;
         *"M3"* | *"M4"*)
             if [[ $total_memory -ge 32 ]]; then
-                RECOMMENDED_MODEL="qwen2"
+                RECOMMENDED_MODEL="qwen2.5-7b"
                 BATCH_SIZE=2
             else
-                RECOMMENDED_MODEL="gemma-2b"
+                RECOMMENDED_MODEL="gemma-2-2b"
                 BATCH_SIZE=4
             fi
             ;;
@@ -1002,19 +1086,19 @@ show_help() {
         "model")
             print_header "Model Selection Help"
             echo -e "${CYAN}Available Models:${NC}"
-            echo -e "• ${BOLD}Phi-3 Mini${NC}: Best for quick experiments (4GB RAM)"
+            echo -e "• ${BOLD}Phi-3.5 Mini${NC}: Best for quick experiments (4GB RAM)"
             echo -e "  - Fast training, good for testing workflows"
             echo -e "  - Suitable for text generation and completion"
             echo
-            echo -e "${CYAN}2. Gemma 2B${NC}"
+            echo -e "${CYAN}2. Gemma 2-2B${NC}"
             echo -e "   - Google's latest compact model"
-            echo -e "   - Memory: ~6GB required"
+            echo -e "   - Memory: ~12GB required"
             echo -e "   - Best for: Balanced performance, efficiency"
             echo
-            echo -e "${CYAN}3. Qwen2${NC}"
-            echo -e "   - Alibaba's multilingual model"
-            echo -e "   - Memory: ~10GB required"
-            echo -e "   - Best for: Multilingual tasks, complex reasoning"
+            echo -e "${CYAN}3. Qwen 2.5 7B${NC}"
+            echo -e "   - Advanced multilingual model"
+            echo -e "   - Memory: ~32GB required"
+            echo -e "   - Best for: Complex tasks, multilingual support"
             ;;
         "data")
             print_header "Dataset Help"
@@ -1187,7 +1271,45 @@ EOF
     show_completion
 }
 
-# Main execution
+# Add this function before main()
+verify_all_configs() {
+    print_info "Verifying model configurations..."
+    
+    # Create configs directory if it doesn't exist
+    mkdir -p "${PROJECT_ROOT}/configs/models"
+    
+    # List of required config files
+    local required_configs=(
+        "phi3.yaml:microsoft/Phi-3.5-mini-instruct"
+        "gemma.yaml:google/gemma-2-2b"
+        "qwen.yaml:Qwen/Qwen2.5-7B-Instruct"
+    )
+    
+    # Check each config file
+    for config_pair in "${required_configs[@]}"; do
+        local config_file="${config_pair%%:*}"
+        local model_name="${config_pair#*:}"
+        local config_path="${PROJECT_ROOT}/configs/models/${config_file}"
+        
+        if [ ! -f "$config_path" ]; then
+            print_error "Missing required config: ${config_file}"
+            print_info "Expected path: ${config_path}"
+            return 1
+        else
+            # Verify the config contains the correct model name
+            if ! grep -q "name: \"${model_name}\"" "$config_path"; then
+                print_error "Invalid model name in ${config_file}"
+                print_info "Expected model: ${model_name}"
+                return 1
+            fi
+        fi
+    done
+    
+    print_success "All model configurations verified"
+    return 0
+}
+
+# Update main() to use this verification
 main() {
     # Initialize
     if [ "$FRESH_START" == "1" ]; then
@@ -1196,6 +1318,13 @@ main() {
     
     print_logo
     print_welcome
+    
+    # Verify configs exist and are valid
+    verify_all_configs || {
+        print_error "Model configuration verification failed"
+        print_info "Please ensure all model configuration files exist in configs/models/"
+        exit 1
+    }
     
     # Step 1: Environment Setup
     print_header "Step 1: Environment Setup"
@@ -1234,7 +1363,7 @@ main() {
     print_progress
     
     # Tutorial Complete
-    print_header "🎉 Tutorial Complete!"
+    print_header " Tutorial Complete!"
     echo
     echo -e "${GREEN}Congratulations! You've successfully:"
     echo -e "✓ Set up your environment"
@@ -1264,17 +1393,112 @@ check_available_ram() {
     return 0
 }
 
-# Function to download model with progress
+# Function to download model
 download_model() {
     local model_path=$(get_model_path $MODEL_CHOICE)
     print_info "Downloading ${model_path}..."
-    python "${PROJECT_ROOT}/mlx_lora_trainer/scripts/python/download.py" \
+    
+    # Set optimized environment variables for faster downloads
+    export HF_HUB_ENABLE_HF_TRANSFER=1          # Enable fast transfer
+    export HF_HUB_DOWNLOAD_WORKERS=16           # More parallel workers
+    export HF_DATASETS_OFFLINE=1                # Use cached files when available
+    export HF_HUB_DISABLE_PROGRESS_BARS=1       # Reduce overhead
+    export HF_HUB_DISABLE_TELEMETRY=1          # Disable telemetry
+    export HF_HUB_DOWNLOAD_TIMEOUT=300         # Longer timeout for large files
+    
+    # Additional optimization for Apple Silicon
+    if [ "$(uname -m)" = "arm64" ]; then
+        export HF_HUB_DISABLE_SYMLINKS=1        # Better performance on Apple Silicon
+    fi
+    
+    # Create cache directory if it doesn't exist
+    mkdir -p "${PROJECT_ROOT}/.cache"
+    
+    # Check if model is already downloaded
+    if [ -d "${PROJECT_ROOT}/.cache/${model_path}" ]; then
+        print_success "Model already downloaded"
+        return 0
+    fi
+    
+    # Download model using optimized Python script
+    PYTHONWARNINGS="ignore::UserWarning" python "${PROJECT_ROOT}/mlx_lora_trainer/scripts/python/download.py" \
         --model "$model_path" \
         --show-progress || {
             print_error "Failed to download model"
             return 1
         }
+    
     print_success "Model downloaded successfully"
+    
+    # Clean up environment variables
+    unset HF_HUB_ENABLE_HF_TRANSFER
+    unset HF_HUB_DOWNLOAD_WORKERS
+    unset HF_DATASETS_OFFLINE
+    unset HF_HUB_DISABLE_SYMLINKS
+    unset HF_HUB_DISABLE_PROGRESS_BARS
+    unset HF_HUB_DISABLE_TELEMETRY
+    unset HF_HUB_DOWNLOAD_TIMEOUT
+    
+    return 0
+}
+
+# Function to verify model configuration
+verify_model_config() {
+    local model_name=$1
+    local config_file=""
+    
+    # Create configs directory if it doesn't exist
+    mkdir -p "${PROJECT_ROOT}/configs/models"
+    
+    case $model_name in
+        "microsoft/Phi-3.5-mini-instruct")
+            config_file="phi3.yaml"
+            ;;
+        "google/gemma-2-2b")
+            config_file="gemma.yaml"
+            ;;
+        "Qwen/Qwen2.5-7B-Instruct")
+            config_file="qwen.yaml"
+            ;;
+        *)
+            print_error "Unknown model: $model_name"
+            return 1
+            ;;
+    esac
+    
+    local full_path="${PROJECT_ROOT}/configs/models/${config_file}"
+    
+    # If config doesn't exist, create it using test_config.py
+    if [ ! -f "$full_path" ]; then
+        print_info "Creating model configuration: ${config_file}"
+        python "${PROJECT_ROOT}/mlx_lora_trainer/scripts/python/test_config.py" || {
+            print_error "Failed to create model configuration"
+            return 1
+        }
+    fi
+    
+    # Verify config exists after potential creation
+    if [ ! -f "$full_path" ]; then
+        print_error "Model configuration not found: ${full_path}"
+        print_info "Expected config file: ${config_file}"
+        print_info "Current directory: $(pwd)"
+        print_info "Project root: ${PROJECT_ROOT}"
+        ls -la "${PROJECT_ROOT}/configs/models/" || true
+        return 1
+    fi
+    
+    export MLX_MODEL_CONFIG="$full_path"
+    print_success "Using model configuration: $full_path"
+    return 0
+}
+
+# Add this function near the other verification functions
+verify_python_env() {
+    # Check for required Python packages
+    python -c "import huggingface_hub" 2>/dev/null || {
+        print_error "huggingface_hub not found. Installing required packages..."
+        pip install huggingface_hub transformers rich || return 1
+    }
     return 0
 }
 
