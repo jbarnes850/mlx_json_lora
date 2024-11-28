@@ -1192,7 +1192,6 @@ handle_command() {
 show_completion() {
     clear
     print_logo
-    echo
     echo -e "${BOLD}${GREEN}🎉 Congratulations! Your Model is Ready${NC}"
     echo
     echo -e "${CYAN}What you've accomplished:${NC}"
@@ -1206,47 +1205,31 @@ show_completion() {
     echo -e "• ${CYAN}Configuration: adapters/config.json${NC}"
     echo
     echo -e "${BOLD}${YELLOW}Try Your Model:${NC}"
-    echo -e "1. ${YELLOW}Start chatting:${NC}"
-    echo -e "   ./scripts/shell/chat.sh"
-    echo
-    echo -e "${BOLD}${YELLOW}Deploy your model:${NC}"
-    echo -e "   # Export with merged weights"
-    echo -e "   ./scripts/shell/export.sh --merge"
-    echo -e "   # Or with 4-bit quantization"
-    echo -e "   ./scripts/shell/export.sh --merge --quantize"
-    echo
-    echo -e "${BOLD}${BLUE}API Integration:${NC}"
-    echo -e "Start the HTTP server:"
-    echo -e "mlx_lm.server --model adapters --port 8080"
-    echo
-    echo -e "${BOLD}Make API calls:${NC}"
-    echo -e 'curl localhost:8080/v1/chat/completions \\'
-    echo -e '  -H "Content-Type: application/json" \\'
-    echo -e '  -d '"'"'{"messages": [{"role": "user", "content": "Hello!"}]}'"'"
-    echo
-    echo -e "${BOLD}Ready to try it out?${NC}"
-    echo -e "1. Type 'chat' to start chatting with your model"
-    echo -e "2. Type 'export' to prepare for deployment"
-    echo -e "3. Type 'quit' to exit"
+    echo -e "1. ${YELLOW}Start chatting${NC}"
+    echo -e "2. ${YELLOW}Export model${NC}"
+    echo -e "3. ${YELLOW}Exit${NC}"
     echo
     
     while true; do
-        read -p "> " choice
+        read -p "Choose an option (1-3): " choice
         case $choice in
-            chat)
-                ./scripts/shell/chat.sh
+            1)
+                # Launch chat with proper model config
+                "${PROJECT_ROOT}/scripts/shell/chat.sh" \
+                    --model-config "${MLX_MODEL_CONFIG}" \
+                    --adapter-path "adapters/lora_weights.safetensors"
                 break
                 ;;
-            export)
-                ./scripts/shell/export.sh --merge
+            2)
+                "${PROJECT_ROOT}/scripts/shell/export.sh" --merge
                 break
                 ;;
-            quit)
+            3)
                 echo -e "${GREEN}Thank you for using MLX LoRA Framework!${NC}"
                 exit 0
                 ;;
             *)
-                echo -e "${YELLOW}Please choose 'chat', 'export', or 'quit'${NC}"
+                echo -e "${YELLOW}Please choose 1, 2, or 3${NC}"
                 ;;
         esac
     done
@@ -1267,7 +1250,7 @@ handle_training_success() {
 }
 EOF
     
-    # Show completion message
+    # Show completion message and start chat
     show_completion
 }
 
