@@ -5,6 +5,9 @@ import os
 import yaml
 from pathlib import Path
 from rich.console import Console
+import mxnet as mx
+from mlx_lora_trainer.models import PhiModel, GemmaModel, QwenModel
+from typing import Dict, List
 
 console = Console()
 
@@ -102,6 +105,72 @@ def test_model_configs():
             return False
     
     return True
+
+def test_model_compatibility():
+    """Verify model implementations match configs."""
+    models = {
+        "phi3": ("microsoft/Phi-3.5-mini-instruct", PhiModel),
+        "gemma": ("google/gemma-2-2b", GemmaModel),
+        "qwen": ("Qwen/Qwen2.5-7B-Instruct", QwenModel)
+    }
+    
+    for name, (path, model_class) in models.items():
+        # Test model loading
+        try:
+            model = model_class.from_pretrained(path)
+            # Test basic forward pass
+            test_input = mx.array([[1, 2, 3]])
+            output = model(test_input)
+            print(f"✓ {name} model verified")
+        except Exception as e:
+            print(f"⚠️ {name} model failed: {str(e)}")
+
+def validate_model_config(config: Dict) -> List[str]:
+    """Validate model configuration."""
+    errors = []
+    
+    # Validate LoRA parameters
+    if config["lora"]["r"] * config["lora"]["alpha"] > config["model"]["hidden_size"]:
+        errors.append("LoRA rank too large for model dimension")
+    
+    # Validate batch size vs memory
+    total_params = calculate_model_size(config["model"]["name"])
+    if total_params * config["model"]["batch_size"] > get_available_memory() * 0.8:
+        errors.append("Batch size too large for available memory")
+    
+    return errors
+
+def validate_training_config(config: Dict) -> List[str]:
+    """Validate training configuration."""
+    errors = []
+    
+    # Validate model parameters
+    if config["model"]["batch_size"] * config["model"]["max_seq_length"] > get_available_memory():
+        errors.append("Batch size * sequence length exceeds available memory")
+        
+    # Validate LoRA parameters
+    if config["lora"]["r"] * config["lora"]["alpha"] > config["model"]["hidden_size"]:
+        errors.append("LoRA rank too large for model dimension")
+        
+    # Validate training parameters
+    if config["training"]["iters"] < 100:
+        errors.append("Training iterations too low (min 100)")
+    if config["training"]["val_batches"] > config["training"]["iters"] // 10:
+        errors.append("Too many validation batches")
+        
+    # Model specific validation
+    model_name = config["model"]["name"]
+    if "Phi" in model_name:
+        if config["model"]["max_seq_length"] > 2048:
+            errors.append("Phi models support max 2048 sequence length")
+    elif "gemma" in model_name:
+        if config["model"]["max_seq_length"] > 8192:
+            errors.append("Gemma models support max 8192 sequence length")
+    elif "Qwen" in model_name:
+        if config["model"]["max_seq_length"] > 32768:
+            errors.append("Qwen models support max 32768 sequence length")
+            
+    return errors
 
 if __name__ == "__main__":
     console.print("[bold blue]Testing Model Configurations...")

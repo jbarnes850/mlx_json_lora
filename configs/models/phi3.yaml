@@ -1,4 +1,4 @@
-# Phi-3.5 Mini specific configuration
+# Phi-3.5 configuration
 model:
   name: "microsoft/Phi-3.5-mini-instruct"
   path: "microsoft/Phi-3.5-mini-instruct"

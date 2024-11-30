@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import yaml
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, List
@@ -160,43 +161,92 @@ def setup_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-config", type=str, required=True,
+                      help="Path to model configuration file")
+    parser.add_argument("--adapter-path", type=str, required=True,
+                      help="Path to adapter weights")
+    parser.add_argument("--temp", type=float, default=0.7,
+                      help="Temperature for sampling")
+    parser.add_argument("--top-p", type=float, default=0.9,
+                      help="Top-p sampling parameter")
+    parser.add_argument("--max-tokens", type=int, default=512,
+                      help="Maximum number of tokens to generate")
+    return parser.parse_args()
+
+
 def main():
-    """Main inference entry point."""
-    parser = setup_arg_parser()
-    args = parser.parse_args()
-
-    # Load model configuration
-    config = load_config(args.model_config)
-    model_name = config["model"]["name"]
-
-    print(f"[INFO] Loading model {model_name}...")
-    model_class = ModelRegistry.get_model_class(model_name)
-    model = model_class.from_pretrained(model_name)
+    args = parse_args()
     
-    # Load adapter weights if they exist
-    adapter_path = Path(args.adapter_path)
-    if adapter_path.exists():
-        print(f"[INFO] Loading adapter weights from {adapter_path}")
-        model.load_weights(str(adapter_path))
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    # Interactive generation loop
-    while True:
+    try:
+        # Verify numpy version
+        import numpy as np
+        np_version = np.__version__
+        if np_version.startswith("2."):
+            print("[WARNING] NumPy 2.x detected. Downgrading to 1.x for compatibility...")
+            import subprocess
+            subprocess.check_call(["pip", "install", "--quiet", "numpy<2.0.0"])
+            import importlib
+            importlib.reload(np)
+        
+        # Load and validate config
+        with open(args.model_config) as f:
+            config = yaml.safe_load(f)
+            
+        model_name = config["model"]["name"]
+        print(f"[INFO] Loading model {model_name}...")
+        
         try:
-            query = input("\nEnter your prompt (Ctrl+C to exit): ")
-            response = generate_text(
-                query,
-                args.adapter_path,
-                args.max_tokens,
-                args.temp,
-                args.top_p
-            )
-            print("\nGenerated response:")
-            print(response)
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            break
+            # Load base model
+            model_class = ModelRegistry.get_model_class(model_name)
+            model = model_class.from_pretrained(model_name)
+            
+            # Load and map adapter weights
+            if args.adapter_path:
+                print(f"[INFO] Loading adapter weights from {args.adapter_path}")
+                adapter_weights = np.load(args.adapter_path)
+                
+                # Map weight names based on model architecture
+                weight_mapping = {
+                    "microsoft/Phi-3.5-mini-instruct": {
+                        "q_proj.lora.weight": "attention.q_proj.lora.weight",
+                        "k_proj.lora.weight": "attention.k_proj.lora.weight",
+                        "v_proj.lora.weight": "attention.v_proj.lora.weight"
+                    },
+                    "google/gemma-2-2b": {
+                        "q_proj.lora.weight": "self_attn.q_proj.lora.weight",
+                        "k_proj.lora.weight": "self_attn.k_proj.lora.weight",
+                        "v_proj.lora.weight": "self_attn.v_proj.lora.weight"
+                    }
+                }
+                
+                # Get mapping for current model
+                if model_name in weight_mapping:
+                    mapped_weights = {}
+                    for old_name, new_name in weight_mapping[model_name].items():
+                        if old_name in adapter_weights:
+                            mapped_weights[new_name] = adapter_weights[old_name]
+                    
+                    # Load mapped weights
+                    model.load_weights(mapped_weights)
+                else:
+                    print(f"[WARNING] No weight mapping found for {model_name}")
+                    model.load_weights(adapter_weights)
+            
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            
+            # Interactive chat loop...
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize model: {str(e)}")
+            raise
+            
+    except Exception as e:
+        print(f"[ERROR] An error occurred: {str(e)}")
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":

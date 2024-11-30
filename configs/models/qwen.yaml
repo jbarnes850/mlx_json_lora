@@ -23,9 +23,11 @@ lora:
   alpha: 32
   dropout: 0.1
   target_modules:
-    - "c_attn"
-    - "c_proj"
-    - "w1"
-    - "w2"
-    - "c_proj"
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+    - "mlp.gate_proj"
+    - "mlp.up_proj"
+    - "mlp.down_proj"
   lora_layers: 28

@@ -81,20 +81,21 @@ start_server() {
     mlx_lm.server \
         --model "$MODEL_PATH" \
         --port "$PORT" \
-        --temperature "$TEMPERATURE" \
-        --max-tokens "$MAX_TOKENS" \
-        --stream true &
+        --trust-remote-code \
+        --log-level INFO \
+        --cache-limit-gb 4 \
+        --use-default-chat-template &
     
     SERVER_PID=$!
     
     # Wait for server to start
-    for i in {1..5}; do
+    for i in {1..10}; do
         if curl -s "localhost:$PORT/v1/models" > /dev/null; then
             echo -e "${GREEN}Server ready!${NC}"
             return 0
         fi
         echo -n "."
-        sleep 1
+        sleep 2
     done
     
     echo -e "${YELLOW}Warning: Server may not be fully ready${NC}"
