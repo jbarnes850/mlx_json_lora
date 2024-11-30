@@ -5,8 +5,8 @@ from mlx.utils import tree_map
 from mlx.optimizers import value_and_grad
 import psutil
 from typing import Dict
-from .utils.batch import split_batch
-from .utils.metrics import compute_grad_norm
+
+from mlx_lora_trainer.utils import split_batch, compute_grad_norm
 
 WEIGHT_MAPPINGS = {
     "microsoft/Phi-3.5-mini-instruct": {

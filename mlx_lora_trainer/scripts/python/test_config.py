@@ -5,10 +5,10 @@ import os
 import yaml
 from pathlib import Path
 from rich.console import Console
-import mlx.core as mx  # Use mlx instead of mxnet
+import mlx.core as mx
 from mlx_lora_trainer.models import PhiModel, GemmaModel, QwenModel
 from typing import Dict, List
-from ...utils.model_utils import calculate_model_size, get_available_memory
+from mlx_lora_trainer.utils import calculate_model_size, get_available_memory
 
 console = Console()
 
