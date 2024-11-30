@@ -5,7 +5,7 @@ import mlx.nn as nn
 from typing import Optional, Dict, Any
 
 class LoRALinear(nn.Module):
-    """LoRA adaptation layer that inherits from MLX Module.
+    """LoRA adaptation layer that inherits from MLX.
     
     This layer implements Low-Rank Adaptation (LoRA) as described in:
     "LoRA: Low-Rank Adaptation of Large Language Models" (https://arxiv.org/abs/2106.09685)

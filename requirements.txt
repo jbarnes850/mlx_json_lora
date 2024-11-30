@@ -30,8 +30,6 @@ frozenlist==1.4.1
 fsspec==2024.6.1
 gast==0.6.0
 google-pasta==0.2.0
-gradio==5.1.0
-gradio_client==1.4.0
 grpcio==1.67.0
 h11==0.14.0
 h5py==3.12.1
@@ -41,7 +39,7 @@ huggingface-hub>=0.25.1
 idna==3.10
 importlib_metadata==8.5.0
 ipykernel==6.29.5
-ipython==8.28.0
+ipython==8.18.0
 jedi==0.19.1
 Jinja2==3.1.4
 jupyter_client==8.6.3
@@ -133,3 +131,5 @@ xxhash==3.5.0
 yarl==1.14.0
 zipp==3.20.2
 hf_transfer
+ruff==0.6.9
+pytest>=7.4.0

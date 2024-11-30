@@ -1,14 +1,3 @@
-# Project specific
-data/*
-mlx_model/*
-adapters/*
-logs/*
-exported_model/*
-.venv/
-venv/
-.venv_test
-.cache/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -31,29 +20,48 @@ wheels/
 .installed.cfg
 *.egg
 
-# Environments
-.env
-.venv
-env/
+# Virtual Environment
 venv/
+.venv/
+.venv_test/
 ENV/
+env/
+.env/
+.cache
 
-# IDEs
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# MLX specific
+# MLX LoRA Trainer specific
+exported_model/
+adapters/
+logs/
+data/
+.recovery/
+.training_state
 *.npz
 *.safetensors
 *.bin
 
-# Logs
-*.log
-*.logs
-training.log
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation
+docs/_build/
+site/
+
+# Distribution
+dist/
+build/
+*.tar.gz

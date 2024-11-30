@@ -1,0 +1,15 @@
+[MASTER]
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+disable=C0111,C0103,C0303,W0311,W0603,W0703,R0903,R0913,R0914
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,x,y,z,df,ax
+
+[FORMAT]
+max-line-length=120
+
+[IMPORTS]
+ignore-modules=numpy,torch,tensorflow,matplotlib,cv2
+allow-any-import-level=yes 

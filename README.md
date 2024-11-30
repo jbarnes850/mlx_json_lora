@@ -1,6 +1,6 @@
 # MLX LoRA Trainer: Professional Model Fine-Tuning on Apple Silicon
 
-> Transform your Mac into a professional model fine-tuning workstation. Built on Apple's MLX framework and optimized for Metal performance.
+> Transform your Mac into a powerful AI development workstation. Built on Apple's MLX framework and optimized for Metal performance.
 
 <div align="center">
 
@@ -10,145 +10,199 @@
 
 </div>
 
-## 🎯 Professional-Grade Fine-Tuning
+## 🎯 Overview
 
-MLX LoRA Trainer brings enterprise-quality model customization to your local environment. Designed for professionals who need:
+MLX LoRA Trainer is a professional-grade framework for fine-tuning large language models on Apple Silicon. Whether you're an ML engineer, AI researcher, or developer exploring AI, this framework provides:
 
-- Production-ready model adaptation
-- Memory-efficient training
-- Professional monitoring and logging
-- Seamless deployment pipeline
-
-### [Watch Demo Video](demo/tutorial.mp4)
+- **Hardware-Aware Optimization**: Automatic model selection and configuration based on your Mac's capabilities
+- **Memory-Efficient Training**: Advanced techniques like gradient checkpointing and LoRA for efficient fine-tuning
+- **Production-Ready Pipeline**: From data preparation to model deployment
+- **Developer-First Experience**: Clear workflows, comprehensive logging, and intuitive CLI
 
 ## ⚡️ Quick Start (2 minutes)
 
-Get started with a single command:
+Get started instantly with our quickstart script:
 
 ```bash
 git clone https://github.com/jbarnes850/mlx_lora_trainer.git
 cd mlx_lora_trainer
+bash scripts/shell/quickstart.sh
+```
+
+The quickstart will:
+
+1. Analyze your hardware
+2. Select the optimal model and configuration
+3. Download a curated training dataset
+4. Start a training run optimized for your system
+
+For a more comprehensive experience:
+
+```bash
 bash scripts/shell/run_tutorial.sh
 ```
 
-The interactive tutorial will guide you through:
+## 🎯 Key Features
 
-1. Selecting your model (Phi-3.5 Mini, Gemma 2-2B, or Qwen 2.5 7B)
-2. Choosing your training data (pre-formatted JSONL or uploading custom data)
-3. Starting your first fine-tuning run
+### 1. Intelligent Hardware Detection
 
-## Advanced Features
+- Automatically detects your Mac's capabilities
+- Optimizes batch sizes and model selection
+- Prevents out-of-memory errors before they happen
 
-### Custom Datasets
+### 2. Supported Models
 
-The framework currently supports pre-formatted JSONL datasets with conversation structure:
+| Model | Parameters | Min RAM | Strengths |
+|-------|------------|---------|-----------|
+| [Phi-3.5 Mini](https://huggingface.co/microsoft/Phi-3.5-mini-instruct) | 3B | 8GB | Fast training, excellent code generation |
+| [Gemma 2-2B](https://huggingface.co/google/gemma-2-2b) | 2.2B | 12GB | Efficient, strong reasoning |
+| [Qwen 2.5 7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) | 7B | 32GB | Advanced tasks, multilingual support |
 
-```json
-{
-    "conversations": [
-        {"role": "user", "content": "Your input text"},
-        {"role": "assistant", "content": "Desired output text"}
-    ]
-}
-```
+### 3. Training Options
 
-Place your formatted data in the `data/` directory as `train.jsonl`, or specify a custom path in the config.
+- **Quick Training**: ~15-30 minutes for initial results
+- **Full Training**: Customizable epochs and parameters
+- **Custom Datasets**: Support for your own training data
 
-> 💡 **Coming Soon**: Support for converting unstructured text data into the required JSONL format.
+### 4. Advanced Features
 
-### Training Times
+- Gradient checkpointing for memory efficiency
+- LoRA adapter training for quick iterations
+- Automatic mixed precision (AMP)
+- Model merging and quantization
+- Ollama export support
 
-Approximate training times per epoch on M2 Pro:
+## 💻 System Requirements
 
-- Phi-3.5 Mini (3B): ~25 minutes
-- Gemma 2-2B (2.2B): ~45 minutes
-- Qwen 2.5 7B (7B): ~120 minutes
-
-Training time varies based on dataset size and hardware. Expect ~20% faster times on M3/M4 Series and ~20% slower on M1 series.
-
-### Local vs Cloud Training
-
-While cloud solutions may offer faster training times, MLX LoRA Trainer provides:
-
-- Complete data privacy
-- No cloud compute costs
-- Full control over training process
-- Optimized for Apple Silicon
-
-## 💻 Supported Models (More Models Coming Soon)
-
-| Model | Parameters | RAM | Use Case |
-|-------|------------|-----|----------|
-| [Phi-3.5 Mini](https://huggingface.co/microsoft/Phi-3.5-mini-instruct) | 3B | 8GB | Instruction following, coding |
-| [Gemma 2-2B](https://huggingface.co/google/gemma-2-2b) | 2.2B | 12GB | General purpose, efficient |
-| [Qwen 2.5 7B](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) | 7B | 32GB | Advanced tasks, multilingual |
-
-## 📊 Technical Implementation
-
-### Memory-Optimized Training
-
-```python
-config = Config(
-    model_name="google/gemma-2-2b",
-    lora_rank=8,
-    lora_alpha=32,
-    grad_checkpoint=True,
-    memory_efficient=True
-)
-```
-
-### Production Data Format
-
-```json
-{
-    "conversations": [
-        {"role": "user", "content": "Query"},
-        {"role": "assistant", "content": "Response"}
-    ]
-}
-```
-
-## 🔧 System Requirements
+### Hardware
 
 - Apple Silicon Mac (M1/M2/M3/M4)
+- RAM:
+  - Minimum: 8GB (Phi-3.5 Mini)
+  - Recommended: 16GB+ (Gemma 2-2B)
+  - Advanced: 32GB+ (Qwen 2.5 7B)
+
+### Software
+
 - macOS Sonoma or newer
 - Python 3.9+
-- RAM requirements:
-  * 8GB+ for Phi-3.5 Mini
-  * 12GB+ for Gemma 2-2B
-  * 32GB+ for Qwen 2.5 7B Instruct
+- MLX 0.18.1+
 
-## 📚 Documentation
+## 📚 Usage Guide
 
-- [Installation Guide](docs/installation.md)
-- [API Reference](docs/api.md)
-- [Best Practices](docs/best_practices.md)
-- [Contributing](docs/contributing.md)
+### 1. Data Preparation
 
+```json
+{
+    "conversations": [
+        {"role": "user", "content": "What is machine learning?"},
+        {"role": "assistant", "content": "Machine learning is a subset of AI..."}
+    ]
+}
+```
+
+### 2. Training Configuration
+
+```yaml
+model:
+  name: "google/gemma-2-2b"
+  batch_size: 4
+  max_seq_length: 2048
+
+training:
+  learning_rate: 1e-4
+  num_epochs: 3
+  grad_checkpoint: true
+
+lora:
+  rank: 8
+  alpha: 32
+  target_modules: ["q_proj", "v_proj"]
+```
+
+### 3. Export Options
+
+```bash
+# Export for local use
+./scripts/shell/export.sh --merge
+
+# Export for Ollama
+./scripts/shell/export.sh --quantize
+```
+
+## 🔍 Technical Details
+
+### Memory Optimization
+
+- Gradient checkpointing reduces memory by ~60%
+- LoRA reduces trainable parameters by >99%
+- Automatic batch size optimization
+- Smart attention caching
+
+### Training Performance
+
+Approximate training times per epoch:
+
+- M1 Pro/Max: Base training time
+- M2 Pro/Max: ~20% faster
+- M3 Pro/Max: ~40% faster
+
+### MLX Integration
+
+- Native Metal performance
+- Efficient tensor operations
+- Hardware-accelerated training
+- Optimized memory management
+
+## 🛠 Advanced Usage
+
+### Custom Dataset Training
+
+```bash
+# Prepare your data
+python -m mlx_lora_trainer.scripts.python.prepare_data \
+    --input your_data.json \
+    --output data/custom_train.jsonl
+
+# Start training
+./scripts/shell/train_lora.sh --config configs/custom_config.yaml
+```
+
+### Model Export and Deployment
+
+```bash
+# Export merged model
+./scripts/shell/export.sh --merge --output my_model
+
+# Start local inference server
+python -m mlx_lora_trainer.server --model my_model --port 8080
+```
 
 ## 📈 Roadmap
 
-### High Priority
+### Upcoming Features
 
-- [ ] Unstructured Data Support
-  * Automatic conversion of text documents to JSONL
-  * Smart chunking and context preservation
-  * Quality-focused conversation generation
-  * Memory-efficient processing pipeline
-
-- [ ] Expanded Model Support
-  * Llama-3 Model Family
-  * Gemma Model Family
-  * Falcon Model Family
-  
-
-### Coming Soon
-
-- [ ] Distributed training support
+- [ ] Adding more models to the supported list
 - [ ] Advanced quantization options
-- [ ] Custom architecture support
-- [ ] Enterprise monitoring dashboard
-- [ ] Cloud integration options
+- [ ] Distributed training support
+- [ ] Web UI for training monitoring
+- [ ] Enhanced data preprocessing tools
+
+### Research Directions
+
+- [ ] Exploration of QLoRA techniques
+- [ ] Implementation of Flash Attention
+- [ ] Investigation of pruning methods
+- [ ] Integration of PEFT approaches
+
+## 🤝 Contributing
+
+We welcome contributions! See our [Contributing Guide](docs/contributing.md) for:
+
+- Development setup
+- Code style guidelines
+- Pull request process
+- Feature request guidelines
 
 ## 📄 License
 

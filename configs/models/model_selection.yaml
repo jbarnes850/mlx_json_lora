@@ -1,1 +1,32 @@
-model_key: microsoft/phi-3-mini-4k-instruct
+# Model Selection Configuration
+default_model: microsoft/phi-3-mini-4k-instruct
+
+# Available Models
+models:
+  phi-3:
+    name: microsoft/phi-3-mini-4k-instruct
+    description: "Fastest training speed, good for testing"
+    min_memory: 8
+    recommended_memory: 12
+    max_batch_size: 8
+    
+  gemma:
+    name: google/gemma-2-2b
+    description: "Balanced performance, good for medium datasets"
+    min_memory: 12
+    recommended_memory: 16
+    max_batch_size: 4
+    
+  qwen:
+    name: Qwen/Qwen2.5-7B-Instruct
+    description: "Best quality, good for production"
+    min_memory: 16
+    recommended_memory: 24
+    max_batch_size: 2
+
+# Hardware Requirements
+requirements:
+  min_memory: 8  # GB
+  processor: "apple_silicon"
+  os: "darwin"
+  python_version: ">=3.9"

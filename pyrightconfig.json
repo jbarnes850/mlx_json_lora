@@ -1,0 +1,12 @@
+{
+    "venv": ".venv",
+    "venvPath": ".",
+    "extraPaths": [
+        ".",
+        "./mlx_lora_trainer"
+    ],
+    "pythonVersion": "3.9",
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "reportMissingImports": "warning"
+} 

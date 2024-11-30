@@ -4,11 +4,10 @@
 source "$(dirname "$0")/common.sh"
 source "$(dirname "$0")/utils/profiler.sh"
 
-# Initialize profiler and set design elements
-init_profiler
-
-VERSION="1.0.0"
+# Version and constants
+VERSION="0.1.0-beta"
 TOTAL_STEPS=8
+REPO_URL="https://github.com/jbarnes850/mlx-lora-trainer"
 
 # Design elements
 HEADER_STYLE="━"
@@ -16,6 +15,27 @@ BULLET_POINT="•"
 CHECKMARK="✓"
 WARNING="⚠️"
 INFO="ℹ️"
+
+check_version() {
+    print_info "Checking for updates..."
+    if ! command -v curl &> /dev/null; then
+        print_info "curl not found, skipping version check"
+        return
+    fi
+    
+    latest=$(curl -s https://api.github.com/repos/jbarnes850/mlx-lora-trainer/releases/latest | grep tag_name | cut -d '"' -f 4)
+    if [[ -n "$latest" && "$VERSION" != "$latest" ]]; then
+        echo -e "${YELLOW}${WARNING} New version available: $latest${NC}"
+        echo -e "Update with: git pull origin main"
+        echo
+    fi
+}
+
+show_beta_notice() {
+    echo -e "\n${YELLOW}${WARNING} Beta Release${NC}"
+    echo -e "• Report issues: ${REPO_URL}/issues"
+    echo
+}
 
 print_logo() {
     echo -e "${BLUE}"
@@ -25,43 +45,42 @@ print_logo() {
     echo "    | |  | | |___ /  \    | |__| |_| |  _ <  / ___ \  "
     echo "    |_|  |_|_____/_/\_\   |_____\___/|_| \_\/_/   \_\ "
     echo -e "${NC}"
-}
-
-print_model_info() {
-    local model=$1
-    echo -e "\n${CYAN}${BULLET_POINT} Model Details:${NC}"
-    case $model in
-        "phi-3")
-            echo "  ${BULLET_POINT} Architecture: Phi-3.5 Mini"
-            echo "  ${BULLET_POINT} Parameters: 3.5B"
-            echo "  ${BULLET_POINT} RAM Required: 8GB+"
-            echo "  ${BULLET_POINT} Training Time: ~25min/epoch"
-            ;;
-        "gemma")
-            echo "  ${BULLET_POINT} Architecture: Gemma 2-2B"
-            echo "  ${BULLET_POINT} Parameters: 2.2B"
-            echo "  ${BULLET_POINT} RAM Required: 12GB+"
-            echo "  ${BULLET_POINT} Training Time: ~45min/epoch"
-            ;;
-        "qwen")
-            echo "  ${BULLET_POINT} Architecture: Qwen 2.5 7B"
-            echo "  ${BULLET_POINT} Parameters: 7B"
-            echo "  ${BULLET_POINT} RAM Required: 32GB+"
-            echo "  ${BULLET_POINT} Training Time: ~90min/epoch"
-            ;;
-    esac
+    echo -e "${CYAN}Version: ${VERSION}${NC}"
 }
 
 # Main function with complete journey
 main() {
+    clear
+    print_logo
+    show_beta_notice
+    check_version
+    
     setup_environment
-    detect_hardware
-    setup_training_environment
-    select_model
-    select_dataset
-    run_training
-    run_inference
-    export_model
+    
+    # Show quickstart option
+    echo -e "\n${CYAN}Choose your experience:${NC}"
+    echo -e "1) Quick Start (15-30 minutes)"
+    echo -e "2) Full Tutorial (guided, detailed)"
+    read -p "Select option (1-2): " experience_choice
+    
+    case $experience_choice in
+        1) 
+            show_quick_start || exit 1
+            ;;
+        2)
+            detect_hardware
+            setup_training_environment
+            select_model
+            select_dataset
+            run_training
+            run_inference
+            export_model
+            ;;
+        *)
+            print_error "Invalid choice"
+            exit 1
+            ;;
+    esac
 }
 
 # Enhanced model selection with detailed info
@@ -1014,16 +1033,123 @@ EOF
 
 show_quick_start() {
     echo -e "\n${CYAN}Quick Start Mode${NC}"
-    echo -e "• Optimized for your M${CHIP_GENERATION} Mac"
-    echo -e "• Using ${RECOMMENDED_MODEL} (best for your hardware)"
-    echo -e "• Example dataset ready to go"
-    echo -e "• ~${ESTIMATED_TIME} minutes to first results"
     
-    echo -e "\n${YELLOW}Start quick demo? (y/n)${NC}"
+    # Use quickstart.sh's welcome message
+    python3 - << EOF
+from rich.console import Console
+from rich.layout import Layout
+from rich.panel import Panel
+
+console = Console()
+layout = Layout()
+layout.split_column(
+    Layout(Panel.fit(
+        "[bold cyan]🚀 MLX LoRA Trainer Quickstart[/bold cyan]\n"
+        "The fastest way to fine-tune LLMs on Apple Silicon",
+        border_style="cyan"
+    )),
+    Layout(Panel.fit(
+        "This quickstart will help you:\n"
+        "• Fine-tune a model in ~15-30 minutes\n"
+        "• Learn the basics of local LLM training\n"
+        "• Create your own custom AI assistant",
+        border_style="blue"
+    ))
+)
+console.print(layout)
+EOF
+    
+    # Use quickstart's hardware detection
+    echo -e "\n${CYAN}Analyzing your hardware...${NC}"
+    python3 - << EOF
+from mlx_lora_trainer.model import ModelRegistry
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
+config = ModelRegistry.quickstart()
+
+if config:
+    console.print("\n[bold green]✓ Optimal Configuration Found![/bold green]")
+    
+    # Show model info
+    console.print(Panel.fit(
+        f"[bold]Selected Model:[/bold] {config['model_name']}\n"
+        f"[bold]Description:[/bold] {config['description']}\n"
+        f"[bold]Batch Size:[/bold] {config['batch_size']}",
+        title="Model Configuration",
+        border_style="green"
+    ))
+    
+    # Show hardware info
+    hw = config['hardware']
+    console.print(Panel.fit(
+        f"• Device: {hw['device']}\n"
+        f"• Memory: {hw['memory']:.1f}GB\n"
+        f"• Processor: {hw['processor']}",
+        title="Hardware Information",
+        border_style="cyan"
+    ))
+    
+    # Save configuration
+    import yaml
+    with open("quickstart_config.yaml", "w") as f:
+        yaml.dump(config["config"], f)
+        
+    print("CONFIG_SAVED=true")
+    print(f"SELECTED_MODEL={config['model_name']}")
+else:
+    print("CONFIG_SAVED=false")
+EOF
+    
+    # Read output variables
+    eval $(tail -n 2)
+    
+    if [[ "$CONFIG_SAVED" != "true" ]]; then
+        print_error "Hardware configuration failed"
+        return 1
+    fi
+    
+    # Use quickstart's dataset preparation
+    print_header "Preparing Dataset"
+    source "${PROJECT_ROOT}/scripts/shell/quickstart.sh" prepare_dataset || {
+        print_error "Dataset preparation failed"
+        return 1
+    }
+    
+    # Show training preview
+    python3 - << EOF
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
+table = Table(title="Training Process Overview", border_style="cyan")
+table.add_column("Step", style="cyan")
+table.add_column("Duration", style="green")
+table.add_column("Description", style="white")
+
+table.add_row("Setup", "1-2 min", "Preparing model and dataset")
+table.add_row("Training", "15-30 min", "Fine-tuning with live metrics")
+table.add_row("Validation", "2-3 min", "Testing model performance")
+table.add_row("Export", "1 min", "Saving trained model")
+
+console.print(table)
+EOF
+    
+    echo -e "\n${YELLOW}Start quick training? (y/n)${NC}"
     read -p "> " quick_start
     
     if [[ $quick_start == "y" ]]; then
-        run_quick_demo
+        # Start training with quickstart configuration
+        ./scripts/shell/train_lora.sh --config quickstart_config.yaml || {
+            print_error "Training failed"
+            return 1
+        }
+        
+        # Show completion message
+        show_completion
+    else
+        echo -e "\n${CYAN}Returning to main menu...${NC}"
     fi
 }
 

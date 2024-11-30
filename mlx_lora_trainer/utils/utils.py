@@ -1,4 +1,4 @@
-"""Utility functions for MLX LoRA Trainer."""
+"""Core utility functions for MLX LoRA Trainer."""
 
 import logging
 from pathlib import Path
@@ -115,4 +115,4 @@ def compute_grad_norm(model: nn.Module) -> float:
     for p in model.parameters():
         if p.grad is not None:
             total_norm += mx.sum(p.grad ** 2)
-    return float(mx.sqrt(total_norm))
+    return float(mx.sqrt(total_norm)) 

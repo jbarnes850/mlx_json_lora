@@ -8,10 +8,10 @@ version = "0.1.0"
 description = "MLX LoRA Trainer - Fine-tuning toolkit optimized for Apple Silicon"
 readme = "README.md"
 authors = [
-    {name = "Codeium", email = "support@codeium.com"}
+    {name = "Jarrod Barnes", email = "jbarnes850@gmail.com"}
 ]
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "mlx>=0.21.0",
     "transformers>=4.36.0",
@@ -32,8 +32,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/codeium/mlx-lora-trainer"
-Repository = "https://github.com/codeium/mlx-lora-trainer.git"
+Homepage = "https://github.com/jbarnes850/mlx-lora-trainer"
+Repository = "https://github.com/jbarnes850/mlx-lora-trainer.git"
 
 [tool.setuptools]
 packages = ["mlx_lora_trainer"]
