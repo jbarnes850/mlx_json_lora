@@ -6,6 +6,7 @@ logs/*
 exported_model/*
 .venv/
 venv/
+.venv_test
 .cache/
 
 # Python

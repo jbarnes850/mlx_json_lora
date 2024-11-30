@@ -1,3 +1,7 @@
+import psutil
+from typing import Dict
+from ..utils.model_utils import get_model_size
+
 class MLXLoRAError(Exception):
     """Base exception class for MLX LoRA Trainer."""
     pass
